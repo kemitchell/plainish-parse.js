@@ -1,4 +1,7 @@
-{ "private": true,
+{ "name": "plainish-parse",
+  "repository": "kemitchell/plainish-parse.js",
+  "description": "parse a plainish data format",
+  "private": true,
   "devDependencies": {
     "tape": "^4.5.1" },
   "scripts": {
