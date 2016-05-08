@@ -6,7 +6,11 @@ var LINE = /^( *)(- +)?(.+)$/
 
 function plainishParse(argument) {
   return argument
+    // Split the argument into lines.
     .split('\n')
+
+    // Remove comment lines and map the rest to objects with indent,
+    // bullet, content, and number properties.
     .reduce(
       function(lines, line, index) {
         if (COMMENT.test(line)) {
@@ -26,11 +30,25 @@ function plainishParse(argument) {
               content: match[3],
               number: lineNumber }) } },
       [ ])
+
+    // Build a nested data structure.
     .reduce(
       function(context, line, index, lines) {
-        console.log('%s is %j', 'context', context)
-        console.log('%s is %j', 'line', line)
         var current
+        var newValue
+        var split
+
+        // Determine whether the root structure should be a list (Array)
+        // or a map (Object).
+        if (context.depth === -1) {
+          if (line.indent === 0) {
+            current = ( line.bullet ? [ ] : { } )
+            context.stack.unshift(current)
+            context.depth = 0 }
+          else {
+            throw new Error('Illegal indent on line ' + line.number) } }
+
+        // This line is deeper than the last.
         if (line.indent > context.depth) {
           // TODO check for | line.indent - context.depth | > 1
           if (line.bullet) {
@@ -39,32 +57,50 @@ function plainishParse(argument) {
           else {
             current = { }
             context.stack.unshift(current) } }
+        // This line is at the same or a lower depth than the last.
         else {
           while (line.indent < context.depth) {
             context.depth--
             context.stack.shift() }
             current = context.stack[0] }
 
-        console.log('%s is %j', 'current', current)
-
+        // This line has a bullet, meaning it's the start of an item in
+        // a list.
         if (line.bullet) {
-          current.push(line.content) }
+          split = line.content.split(' ')
+          if (split.length === 1) {
+            current.push(line.content)
+            context.depth = line.indent }
+          else {
+            newValue = { }
+            newValue[split[0]] = split[1]
+            current.push(newValue)
+            context.stack.unshift(newValue)
+            context.depth = ( line.indent + 1 ) } }
         else {
-          var split = line.content.split(' ')
+          split = line.content.split(' ')
           if (split.length === 1) {
             var nextLine = lines[index + 1]
-            if (nextLine) {
-              var newValue = ( nextLine.bullet ? [ ] : { } )
-              current[line.content] = newValue }
+            if (nextLine && nextLine.indent === ( line.indent + 1 )) {
+              newValue = ( nextLine.bullet ? [ ] : { } )
+              current[line.content] = newValue
+              context.stack.unshift(newValue)
+              context.depth = nextLine.indent }
             else {
               throw new Error('Dangling key on line ' + line.number) } }
           else {
-            var newObject = { }
-            newObject[split[0]] = split[1]
-            current[line.content] = newObject } }
+            current[split[0]] = split[1] } }
 
-        context.depth = line.indent
         return context },
+
+      // The initial context.
       { depth: -1, stack: [ ] })
+
+    // The stack from the context above.
     .stack
-    .reverse()[0] }
+
+    // Reverse it...
+    .reverse()
+
+    // ...so we can pull the last element.
+    [0] }

@@ -11,7 +11,16 @@ tape('plainish', function(test) {
       multiline(
         '- a',
         '- b')),
-    [ 'a', 'b' ])
+    [ 'a', 'b' ],
+    'two-element list')
+
+  test.same(
+    plainish(
+      multiline(
+        'a 1',
+        'b 2')),
+    { a: '1', b: '2' },
+    'map with two strings')
 
   test.same(
     plainish(
@@ -19,7 +28,8 @@ tape('plainish', function(test) {
         'x',
         '  - a',
         '  - b')),
-    { x: [ 'a', 'b' ] })
+    { x: [ 'a', 'b' ] },
+    'map with two-element list')
 
   test.same(
     plainish(
@@ -27,7 +37,8 @@ tape('plainish', function(test) {
         'x',
         '  a 1',
         '  b 2')),
-    { x: { a: '1', b: '2' } })
+    { x: { a: '1', b: '2' } },
+    'map with two-key map')
 
   test.same(
     plainish(
@@ -36,7 +47,8 @@ tape('plainish', function(test) {
         '  - a 1',
         '  - b 2',
         '  - c')),
-    { x: [ { a: '1' }, { b: '1' }, 'c' ] })
+    { x: [ { a: '1' }, { b: '2' }, 'c' ] },
+    'map with list of maps and string')
 
   test.same(
     plainish(
@@ -45,14 +57,14 @@ tape('plainish', function(test) {
         '  - a 1',
         '    b 2',
         '  - c')),
-    { x: [ { a: '1', b: '1' }, 'c' ] })
+    { x: [ { a: '1', b: '2' }, 'c' ] },
+    'map with list of two-key map and string')
 
-
-  test.same(
-    plainish(
-      multiline(
-        'x',
-        '    y z')),
-    { x: 'y z' })
+  //test.same(
+  //  plainish(
+  //    multiline(
+  //      'x',
+  //      '    y z')),
+  //  { x: 'y z' })
 
   test.end() })
