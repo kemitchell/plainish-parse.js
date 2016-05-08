@@ -1,0 +1,5 @@
+{ "private": true,
+  "devDependencies": {
+    "tape": "^4.5.1" },
+  "scripts": {
+    "test": "node test.js" } }
